@@ -82,7 +82,6 @@ fn main() {
 
     let mut last_track: Option<TrackInfo> = None;
     let mut last_display_time = SystemTime::now();
-
     loop {
         // Check if user clicked Exit/Quit in the System Tray menu
         if tray.is_exit_requested() {
@@ -156,17 +155,17 @@ fn main() {
                         };
                         activity.state = Some(state_str);
 
-                        // Timestamps for live progress bar on Discord
+                        // Discord has no native paused timestamp: removing the
+                        // timestamps hides the progress bar until playback resumes.
                         if track.state == PlaybackState::Playing && track.duration_secs > 0 {
                             let now_secs = SystemTime::now()
                                 .duration_since(UNIX_EPOCH)
                                 .unwrap_or_default()
                                 .as_secs();
                             let start = now_secs.saturating_sub(track.position_secs);
-                            let end = start + track.duration_secs;
                             activity.timestamps = Some(Timestamps {
                                 start: Some(start),
-                                end: Some(end),
+                                end: Some(start + track.duration_secs),
                             });
                         }
 
@@ -179,16 +178,17 @@ fn main() {
                             } else {
                                 Some(track.title.clone())
                             },
-                            small_image: Some(if is_playing {
-                                "play".to_string()
-                            } else {
-                                "pause".to_string()
-                            }),
-                            small_text: Some(if is_playing {
-                                "Playing".to_string()
-                            } else {
-                                "Paused".to_string()
-                            }),
+                            // Discord resolves small images by the asset key
+                            // configured in the application's Rich Presence assets.
+                            small_image: Some("applemusic".to_string()),
+                            small_text: Some(
+                                if is_playing {
+                                    "Apple Music - Playing"
+                                } else {
+                                    "Apple Music - Paused"
+                                }
+                                .to_string(),
+                            ),
                         });
 
                         // "Écouter ensemble" / Listen button

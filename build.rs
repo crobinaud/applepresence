@@ -1,4 +1,6 @@
 fn main() {
+    println!("cargo:rerun-if-changed=applemusic.png");
+
     #[cfg(windows)]
     {
         let mut res = winres::WindowsResource::new();
